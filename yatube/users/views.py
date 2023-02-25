@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 # Create your views here.
 # Импортируем CreateView, чтобы создать ему наследника
 from django.views.generic import CreateView
