@@ -8,7 +8,6 @@ from .utils import get_paginator
 def index(request):
     post_list = Post.objects.all()
     context = {
-        'posts': get_paginator(request, post_list),
         'page_obj': get_paginator(request, post_list),
     }
     return render(request, 'posts/index.html', context)
@@ -20,15 +19,13 @@ def group_posts(request, slug):
     context = {
         'page_obj': get_paginator(request, post_list),
         'group': group,
-        'posts': get_paginator(request, post_list),
     }
     return render(request, 'posts/group_list.html', context)
 
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    post_list = author.posts.filter(
-        author__username=username).order_by('-pub_date')
+    post_list = author.posts.all().order_by('-pub_date')
     post_count = post_list.count()
     context = {
         'username': username,
@@ -59,11 +56,10 @@ def post_create(request):
             form.save()
             return redirect('profile:profile', username=post.author)
     template = 'posts/create_post.html'
-    is_edit = False
     context = {
 
         'form': form,
-        'is_edit': is_edit
+        'is_edit': False
     }
     return render(request, template, context)
 
@@ -79,9 +75,9 @@ def post_edit(request, post_id):
             return redirect('index:post_detail', post_id=post_id)
     form = PostForm(instance=post)
     context = {
+
         'form': form,
-        'is_edit': True,
-        'text': form
+        'is_edit': True
     }
     return render(request, 'posts/create_post.html', context)
 
@@ -99,7 +95,7 @@ def post_edit(request, post_id):
     }
     return render(request, template, context)'''
 
-# ПОСОМТРИ ПРО МЕТОД POST. Что это за хуетень вообще?
+# ПОСОМТРИ ПРО МЕТОД POST
 # И ПОСМОТРИ ПРО валидно/не валидно
 
 
