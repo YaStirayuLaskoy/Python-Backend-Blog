@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-# from . import views
 
 urlpatterns = [
     path('', include('posts.urls', namespace='index')),
@@ -24,11 +23,5 @@ urlpatterns = [
     path('auth/', include('django.contrib.auth.urls')),
     path('about/', include('about.urls', namespace='about')),
     path('create/', include('posts.urls', namespace='posts')),
-    path('profile/', include('posts.urls', namespace='profile')),
+    path('profile/', include('posts.urls', namespace='posts')),
 ]
-
-
-# path('profile/', include('posts.urls', namespace='posts')),
-# path('create/', include('posts.urls', namespace='posts')),
-# path('posts/', include('posts.urls', namespace='posts')),
-# path('group/', include('posts.urls', namespace='posts')),

@@ -5,7 +5,7 @@
   <header>
     <nav class="navbar navbar-light" style="background-color: lightskyblue">
       <div class="container">
-        <a class="navbar-brand" href="{% url 'index:main' %}">
+        <a class="navbar-brand" href="{% url 'posts:index' %}">
           <img src="{% static 'img/logo.png' %}" width="30" height="30" class="d-inline-block align-top" alt="">
           <span style="color:red">Ya</span>tube
         </a>
@@ -33,8 +33,8 @@
           {% endcomment %}
           {% if request.user.is_authenticated %}
           <li class="nav-item"> 
-            <a class="nav-link {% if view_name  == 'index:post_create' %} active {% endif %}"
-             href="{% url 'index:post_create' %}">
+            <a class="nav-link {% if view_name  == 'posts:create_post' %} active {% endif %}"
+             href="{% url 'posts:create_post' %}">
              Новая запись
             </a>
           </li>

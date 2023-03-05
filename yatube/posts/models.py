@@ -35,7 +35,7 @@ class Post(models.Model):
 
     def __str__(self) -> str:
         # выводим текст поста
-        return self.text
+        return self.text[:15]
 
 
 # class Group(models.Model):

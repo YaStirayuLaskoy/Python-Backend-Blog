@@ -20,7 +20,7 @@
               </div>
               <div class="card-body">        
                 <form method="post" action= {% if is_edit %} {% url 'posts:post_edit' form.instance.pk %}
-                  {% else %} {% url 'index:post_create'%} {% endif %}>
+                  {% else %} {% url 'posts:create_post'%} {% endif %}>
                   {% csrf_token %}
                   <div class="form-group row my-3 p-3">
                     <label for="id_text">

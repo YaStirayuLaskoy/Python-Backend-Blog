@@ -25,7 +25,12 @@ SECRET_KEY = '&fnm48$=_4p)y=*erm2g16mg2+$+kdoa=aw6a6x7_l)-m6g@n2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+]
 
 
 # Application definition
