@@ -72,13 +72,13 @@ class StaticURLTests(TestCase):
     def test_urls_uses_correct_template(self):
 
         templates_url_names = {
-            'posts/index.html': '/',
-            'posts/group_list.html': f'/group/{self.group.slug}/',
-            'posts/profile.html': '/profile/NoBody/',
-            'posts/post_detail.html': f'/posts/{self.post.id}/'
+            '/': 'posts/index.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
+            '/profile/NoBody/': 'posts/profile.html',
+            f'/posts/{self.post.id}/': 'posts/post_detail.html'
         }
 
-        for template, address in templates_url_names.items():
+        for address, template in templates_url_names.items():
             with self.subTest(address=address):
                 response = self.authorized_client.get(address)
                 self.assertTemplateUsed(response, template)
