@@ -47,23 +47,45 @@ def post_detail(request, post_id):
 
 
 def create_post(request):
-    form = PostForm(request.POST or None)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None
+    )
     if request.method == 'POST':
-        form = PostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
             form.save()
             return redirect('posts:profile', username=post.author)
-    template = 'posts/create_post.html'
     context = {
         'form': form,
         'is_edit': False
     }
-    return render(request, template, context)
+    return render(request, 'posts/create_post.html', context)
 
 
 def post_edit(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if post.author != request.user:
+        return redirect('posts:post_detail', post_id=post_id)
+
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
+    if form.is_valid():
+        form.save()
+        return redirect('posts:post_detail', post_id=post_id)
+    context = {
+        'post': post,
+        'form': form,
+        'is_edit': True,
+    }
+    return render(request, 'posts/create_post.html', context)
+
+
+'''def post_edit(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if request.user.id != post.author.id:
         return redirect('posts:post_detail', post_id=post_id)
@@ -84,4 +106,4 @@ def post_edit(request, post_id):
         'form': form,
         'is_edit': True
     }
-    return render(request, 'posts/create_post.html', context)
+    return render(request, 'posts/create_post.html', context)'''

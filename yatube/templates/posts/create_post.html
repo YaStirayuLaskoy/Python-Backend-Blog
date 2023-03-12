@@ -20,7 +20,7 @@
               </div>
               <div class="card-body">        
                 <form method="post" action= {% if is_edit %} {% url 'posts:post_edit' form.instance.pk %}
-                  {% else %} {% url 'posts:create_post'%} {% endif %}>
+                  {% else %} {% url 'posts:create_post'%} {% endif %} enctype="multipart/form-data">
                   {% csrf_token %}
                   <div class="form-group row my-3 p-3">
                     <label for="id_text">
@@ -45,16 +45,13 @@
                       Группа, к которой будет относиться пост
                     </small>
                   </div>
-                  <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {% for field in form %}
                     <div class="form-group row my-3 p-3">
                       <label for="id_image">
                         Картинка
                       </label>
                       <input type="file" name="image" accept="image/*" class="form-control" id="id_image"> 
                     </div>
-                    {% endfor %}
                   <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary">
                       {% if is_edit %}

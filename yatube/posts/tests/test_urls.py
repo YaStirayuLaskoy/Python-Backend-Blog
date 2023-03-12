@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from http import HTTPStatus
 
 from posts.models import Post, Group
 
@@ -37,7 +38,7 @@ class StaticURLTests(TestCase):
 
     def test_create(self):
         response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_correct_html(self):
         response = self.authorized_client.get('/create/')
@@ -51,23 +52,23 @@ class StaticURLTests(TestCase):
 
     def test_homepage(self):
         response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_group(self):
         response = self.guest_client.get(f'/group/{self.group.slug}/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_profile(self):
         response = self.guest_client.get('/profile/NoBody/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_posts(self):
         response = self.guest_client.get(f'/posts/{self.post.id}/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def unexisting_page(self):
+    def test_unexisting_page(self):
         response = self.guest_client.get('/unexisting_page/')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_urls_uses_correct_template(self):
 
