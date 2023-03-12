@@ -29,9 +29,17 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         related_name='posts'
     )
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
+    # upload_to это директория, куда загрузится картинка
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
 
     def __str__(self) -> str:
         # выводим текст поста
