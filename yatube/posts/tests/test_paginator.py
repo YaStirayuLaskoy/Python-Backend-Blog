@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.core.paginator import Page
 
 from posts.models import Post, Group
 
@@ -23,29 +22,26 @@ class TestPaginator(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
-        for _ in range(15):
-            Post.objects.create(
-                author=cls.user,
-                text='Тестовый текст',
-                group=cls.group,
-            )
 
-    def test_paginator_home(self):
-        """Паджинатор шаблона index принимает 10 постов."""
-        response = self.client.get(reverse('posts:index'))
-        page: Page = response.context['page_obj']
-        self.assertEqual(len(page), 10)
+        cls.post = Post.objects.bulk_create([
+            Post(author=cls.user,
+                 text='Тестовый текст',
+                 group=cls.group,)
+            for i in range(15)
+        ])
 
-    def test_paginator_group_posts(self):
-        """Паджинатор шаблона group_list принимает 10 постов."""
-        response = self.client.get(reverse('posts:group_list',
-                                           kwargs={'slug': self.group.slug}))
-        page: Page = response.context['page_obj']
-        self.assertEqual(len(page), 10)
+    def test_sdfsdfsdf(self):
 
-    def test_paginator_profile(self):
-        """Паджинатор шаблона profile принимает 10 постов."""
-        response = self.client.get(reverse('posts:profile',
-                                           kwargs={'username': 'HasNoName'}))
-        page: Page = response.context['page_obj']
-        self.assertEqual(len(page), 10)
+        CASES = [
+            [reverse('posts:index'), 10],
+            [reverse('posts:group_list',
+                     kwargs={'slug': self.group.slug}), 10],
+            [reverse('posts:profile',
+                     kwargs={'username': 'HasNoName'}), 10]
+        ]
+
+        for url, posts_per_page in CASES:
+            with self.subTest(url):
+                self.assertEqual(len(
+                    self.client.get(
+                        url).context['page_obj']), posts_per_page)

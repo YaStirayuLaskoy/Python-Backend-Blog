@@ -15,7 +15,11 @@ class Group(models.Model):
 
 
 class Post(models.Model):
-    text = models.TextField()
+    text = models.TextField(
+        'Текст',
+        max_length=100,
+        help_text='Напишите сюда свой текст'
+    )
     pub_date = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(
         User,
@@ -44,3 +48,28 @@ class Post(models.Model):
     def __str__(self) -> str:
         # выводим текст поста
         return self.text[:15]
+
+
+'''class Comment(models.Model):
+
+    text = models.TextField(
+        'Комментарий',
+        max_length=100,
+        help_text='Напишите сюда свой текст'
+    )
+
+    created = models.DateField(auto_created=True)
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+
+    post = models.ForeignKey(
+        Post,
+        blank=True,
+        null=True,
+        # on_delete=models.Чтото_тут,
+        related_name='comments'
+    )'''
