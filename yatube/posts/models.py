@@ -57,7 +57,10 @@ class Comment(models.Model):
         help_text='Напишите сюда свой комментарий'
     )
 
-    created = models.DateField(auto_created=True)
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации коментария',
+    )
 
     author = models.ForeignKey(
         User,

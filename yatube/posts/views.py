@@ -42,7 +42,7 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     post_count = Post.objects.count()
     comments = post.comments.all()
-    form = CommentForm()
+    form = CommentForm(request.POST or None)
     context = {
         'post': post,
         'post_count': post_count,
@@ -104,6 +104,6 @@ def add_comment(request, post_id):
     return redirect('posts:post_detail', post_id=post_id)
 
 
-@cache_page(60 * 15)
+'''@cache_page(60 * 15)
 def my_view(request):
-    pass
+    pass'''
