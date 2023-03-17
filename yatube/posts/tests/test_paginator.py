@@ -30,8 +30,8 @@ class TestPaginator(TestCase):
             for i in range(15)
         ])
 
-    def test_sdfsdfsdf(self):
-
+    def test_paginator(self):
+        """Паджинатор шаблонов принимает 10 постов."""
         CASES = [
             [reverse('posts:index'), 10],
             [reverse('posts:group_list',

@@ -50,12 +50,11 @@ class Post(models.Model):
         return self.text[:15]
 
 
-'''class Comment(models.Model):
+class Comment(models.Model):
 
     text = models.TextField(
         'Комментарий',
-        max_length=100,
-        help_text='Напишите сюда свой текст'
+        help_text='Напишите сюда свой комментарий'
     )
 
     created = models.DateField(auto_created=True)
@@ -63,13 +62,13 @@ class Post(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
+        verbose_name='Автор'
     )
 
     post = models.ForeignKey(
         Post,
-        blank=True,
-        null=True,
-        # on_delete=models.Чтото_тут,
-        related_name='comments'
-    )'''
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Комментарий',
+    )

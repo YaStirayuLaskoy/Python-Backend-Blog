@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Post, Group, User
-from .forms import PostForm # CommentForm
+from .forms import PostForm, CommentForm
 from django.shortcuts import redirect
 from .utils import get_paginator
-# from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
 
 
 def index(request):
@@ -40,11 +41,13 @@ def profile(request, username):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     post_count = Post.objects.count()
-    form = CommentForm(request.POST or None)
+    comments = post.comments.all()
+    form = CommentForm()
     context = {
         'post': post,
         'post_count': post_count,
         'form': form,
+        'comments': comments,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -88,7 +91,7 @@ def post_edit(request, post_id):
     return render(request, 'posts/create_post.html', context)
 
 
-'''@login_required
+@login_required
 def add_comment(request, post_id):
     # Получите пост и сохраните его в переменную post.
     post = get_object_or_404(Post, pk=post_id)
@@ -98,4 +101,9 @@ def add_comment(request, post_id):
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect('posts:post_detail', post_id=post_id)'''
+    return redirect('posts:post_detail', post_id=post_id)
+
+
+@cache_page(60 * 15)
+def my_view(request):
+    pass
