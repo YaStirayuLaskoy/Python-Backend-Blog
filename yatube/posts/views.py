@@ -52,6 +52,7 @@ def post_detail(request, post_id):
     return render(request, 'posts/post_detail.html', context)
 
 
+@login_required
 def create_post(request):
     form = PostForm(
         request.POST or None,
@@ -70,6 +71,7 @@ def create_post(request):
     return render(request, 'posts/create_post.html', context)
 
 
+@login_required
 def post_edit(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if post.author != request.user:
@@ -104,6 +106,6 @@ def add_comment(request, post_id):
     return redirect('posts:post_detail', post_id=post_id)
 
 
-'''@cache_page(60 * 15)
+@cache_page(60 * 15)
 def my_view(request):
-    pass'''
+    pass

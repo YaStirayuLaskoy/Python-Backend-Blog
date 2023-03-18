@@ -1,13 +1,21 @@
+import shutil
+import tempfile
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
-from django import forms
 
 from posts.models import Post, Group
 
 User = get_user_model()
 
+# Создаем временную папку для медиа-файлов
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTests(TestCase):
 
     @classmethod
@@ -25,12 +33,33 @@ class PostPagesTests(TestCase):
             description='Тестовое описание',
         )
 
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
+
         # Создам запись в БД Post
         cls.post1 = Post.objects.create(
             author=cls.user,
             text='Тестовый текст',
             group=cls.group,
+            image=uploaded,
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        # Метод shutil.rmtree удаляет директорию и всё её содержимое
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         self.user2 = User.objects.create_user(username='UserTest')
@@ -76,6 +105,11 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         self.check_context_contains_page_or_post(response.context)
 
+        # Проверка картинки
+        post = self.authorized_client.get(
+            reverse('posts:index')).context['page_obj'][0]
+        self.assertEqual(post.image, self.post1.image)
+
     def test_group_posts_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
         response = (self.authorized_client.
@@ -83,32 +117,59 @@ class PostPagesTests(TestCase):
                                 kwargs={'slug': 'test-slug'})))
         self.check_context_contains_page_or_post(response.context)
 
+        # Проверка картинки
+        post = self.authorized_client.get(
+            reverse('posts:group_list',
+                    kwargs={'slug': 'test-slug'})).context['page_obj'][0]
+        self.assertEqual(post.image, self.post1.image)
+
     def test_profile_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
         response = (self.authorized_client.
                     get(reverse('posts:profile',
                         kwargs={'username': 'HasNoName'})))
         self.check_context_contains_page_or_post(response.context)
+        self.assertIn('author', response.context)
+        self.assertEqual(response.context['author'], PostPagesTests.user)
+
+        # Проверка картинки
+        post = self.authorized_client.get(
+            reverse('posts:profile',
+                    kwargs={'username': 'HasNoName'})).context['page_obj'][0]
+        self.assertEqual(post.image, self.post1.image)
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:post_detail',
                                                       args=[self.post1.id]))
-        object = response.context.get('post')
-        expected = self.post1.id
-        self.assertEqual(object.id, expected)
+        self.check_context_contains_page_or_post(response.context, post=True)
+        self.assertIn('post', response.context)
+        self.assertEqual(response.context['post'], PostPagesTests.post1)
+        self.assertIn('post_count', response.context)
+        self.assertEqual(
+            response.context['post_count'], PostPagesTests.user.posts.count()
+        )
+
+        # Проверка картинки
+        post = self.authorized_client.get(
+            reverse('posts:post_detail',
+                    args=[self.post1.id])).context['post']
+        self.assertEqual(post.image, self.post1.image)
 
     def test_create_edit_post_show_correct_context(self):
         """create_post и post_edit сформированы с правильным контекстом."""
         urls = (
-            ('posts:create_post', 'posts/create_post.html'),
-            ('posts:post_edit', 'posts/create_post.html', [self.post1.id])
+            ('posts:create_post', []),
+            ('posts:post_edit', [self.post1.id])
         )
-        for name, html, args in urls:
+        for name, args in urls:
             with self.subTest(name=name):
-                response = self.authorized_client.get(reverse(name))
-                self.assertTemplateUsed(response, html)
-                self.assertIn(args, response.context)
+                response = self.authorized_client.get(reverse(name, args=args))
+                self.assertIn('is_edit', response.context)
+                self.assertNotIsInstance('is_edit', bool)
+                self.assertEqual(response.context["is_edit"],
+                                 (name == "posts:post_edit"))
+                self.assertIn('form', response.context)
 
     def test_post_new_home(self):
         """Новый пост на главной странице сайта."""

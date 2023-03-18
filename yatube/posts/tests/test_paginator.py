@@ -22,7 +22,6 @@ class TestPaginator(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
-
         cls.post = Post.objects.bulk_create([
             Post(author=cls.user,
                  text='Тестовый текст',
@@ -32,16 +31,17 @@ class TestPaginator(TestCase):
 
     def test_paginator(self):
         """Паджинатор шаблонов принимает 10 постов."""
-        CASES = [
-            [reverse('posts:index'), 10],
-            [reverse('posts:group_list',
-                     kwargs={'slug': self.group.slug}), 10],
-            [reverse('posts:profile',
-                     kwargs={'username': 'HasNoName'}), 10]
-        ]
-
-        for url, posts_per_page in CASES:
-            with self.subTest(url):
+        pages = (
+            (1, 10), (2, 5)
+        )
+        urls = (
+            reverse('posts:index'),
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}),
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}),
+            reverse('posts:profile', kwargs={'username': 'HasNoName'}),
+        )
+        for url in urls:
+            for page, expected_count in pages:
+                response = self.client.get(url, {"page": page})
                 self.assertEqual(len(
-                    self.client.get(
-                        url).context['page_obj']), posts_per_page)
+                    response.context['page_obj']), expected_count)
