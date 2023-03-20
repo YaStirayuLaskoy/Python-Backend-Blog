@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.core.cache import cache
 
 from posts.models import Post, Group
 
@@ -166,7 +167,7 @@ class PostPagesTests(TestCase):
             with self.subTest(name=name):
                 response = self.authorized_client.get(reverse(name, args=args))
                 self.assertIn('is_edit', response.context)
-                self.assertNotIsInstance('is_edit', bool)
+                self.assertIsInstance(response.context["is_edit"], bool)
                 self.assertEqual(response.context["is_edit"],
                                  (name == "posts:post_edit"))
                 self.assertIn('form', response.context)
@@ -193,3 +194,19 @@ class PostPagesTests(TestCase):
         object = response.context['page_obj']
         new_post = self.post1
         self.assertIn(new_post, object)
+
+    def test_cache_index(self):
+        """Проверка хранения и очищения кэша для index."""
+        response = self.authorized_client.get(reverse('posts:index'))
+        posts = response.content
+        Post.objects.create(
+            text='Текст для теста кэша',
+            author=self.user,
+        )
+        response_old = self.authorized_client.get(reverse('posts:index'))
+        old_posts = response_old.content
+        self.assertEqual(old_posts, posts)
+        cache.clear()
+        response_new = self.authorized_client.get(reverse('posts:index'))
+        new_posts = response_new.content
+        self.assertNotEqual(old_posts, new_posts)

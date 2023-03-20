@@ -114,7 +114,7 @@ class PostCreateFormTests(TestCase):
                     kwargs={'post_id': self.post1.id}
                     ))
         post = Post.objects.get(id=self.post1.id)
-        self.assertEqual(form_data['text'], 'Текст изменённый')
+        self.assertEqual(post.text, form_data["text"])
         self.assertEqual(post.group, self.group2)
 
     def test_unauth_user_cant_publish_pos(self):

@@ -4,9 +4,10 @@ from .forms import PostForm, CommentForm
 from django.shortcuts import redirect
 from .utils import get_paginator
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
+# from django.views.decorators.cache import cache_page
 
 
+# @cache_page(20)
 def index(request):
     post_list = Post.objects.all()
     context = {
@@ -106,6 +107,6 @@ def add_comment(request, post_id):
     return redirect('posts:post_detail', post_id=post_id)
 
 
-@cache_page(60 * 15)
+'''@cache_page(60 * 15)
 def my_view(request):
-    pass
+    pass'''
