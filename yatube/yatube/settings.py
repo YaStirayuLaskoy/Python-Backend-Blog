@@ -153,3 +153,6 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+
+# Кастомная ошибка 403
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'

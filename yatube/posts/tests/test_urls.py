@@ -83,3 +83,8 @@ class StaticURLTests(TestCase):
             with self.subTest(address=address):
                 response = self.authorized_client.get(address)
                 self.assertTemplateUsed(response, template)
+
+    def test_home_page_correct_template(self):
+        """Кастомная ошибка использует шаблон core/404.html."""
+        response = self.guest_client.get('/unexisting_page/')
+        self.assertTemplateUsed(response, 'core/404.html')

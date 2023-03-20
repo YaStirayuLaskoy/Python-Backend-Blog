@@ -8,3 +8,6 @@ urlpatterns = [
     path('auth/', include('django.contrib.auth.urls')),
     path('about/', include('about.urls', namespace='about')),
 ]
+
+# Кастомная ошибка 404
+handler404 = 'core.views.page_not_found'

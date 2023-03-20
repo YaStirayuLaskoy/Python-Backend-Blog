@@ -1,10 +1,10 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Post, Group, User
-from .forms import PostForm, CommentForm
-from django.shortcuts import redirect
-from .utils import get_paginator
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 # from django.views.decorators.cache import cache_page
+from .utils import get_paginator
+
+from .models import Post, Group, User
+from .forms import PostForm, CommentForm
 
 
 # @cache_page(20)
@@ -105,8 +105,3 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
-
-
-'''@cache_page(60 * 15)
-def my_view(request):
-    pass'''
