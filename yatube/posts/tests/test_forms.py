@@ -1,7 +1,7 @@
 import shutil
 import tempfile
 
-from posts.models import Post, Group, Comment
+from posts.models import Post, Group, Comment, Follow
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -22,8 +22,13 @@ class PostCreateFormTests(TestCase):
         super().setUpClass()
         cls.guest_client = Client()
         cls.user = User.objects.create_user(username='TestUser')
+        cls.user228 = User.objects.create_user(username='TestUser2')
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user)
+
+        '''cls.user = User.objects.create_user(username='TestUser2')
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)'''
 
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x02\x00'
@@ -48,12 +53,6 @@ class PostCreateFormTests(TestCase):
             slug='test-slug2',
             description='Тестовое описание2',
         )
-        '''cls.post1 = Post.objects.create(
-            author=cls.user,
-            text='Тестовый текст',
-            group=cls.group,
-            image=uploaded,
-        )'''
 
     def setUp(self):
         # Создаем неавторизованный клиент
@@ -148,3 +147,23 @@ class PostCreateFormTests(TestCase):
             follow=True,
         )
         self.assertEqual(Comment.objects.count(), 1)
+
+    def test_subscribe(self):
+        """Авторизованный пользователь может подписываться на других"""
+        self.post228 = Post.objects.create(
+            author=self.user,
+            text='Тестовый текст',
+            group=self.group,
+        )
+        self.authorized_client.get('/profile/TestUser2/follow/')
+        self.assertEqual(Follow.objects.count(), 1)
+
+    def test_subscribe2(self):
+        """Авторизованный пользователь может отписываться от других"""
+        self.post228 = Post.objects.create(
+            author=self.user,
+            text='Тестовый текст',
+            group=self.group,
+        )
+        self.authorized_client.get('profile/TestUser2/unfollow/')
+        self.assertEqual(Follow.objects.count(), 0)

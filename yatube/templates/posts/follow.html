@@ -4,6 +4,7 @@
 {% load thumbnail %}
         <h1>Посты авторов, на которых Вы подписаны</h1>
         <article>
+            {% include 'posts/includes/switcher.html' %}
             {% for post in page_obj %}
             <ul>
               <li>

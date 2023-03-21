@@ -76,7 +76,7 @@ class StaticURLTests(TestCase):
             '/': 'posts/index.html',
             f'/group/{self.group.slug}/': 'posts/group_list.html',
             '/profile/NoBody/': 'posts/profile.html',
-            f'/posts/{self.post.id}/': 'posts/post_detail.html'
+            f'/posts/{self.post.id}/': 'posts/post_detail.html',
         }
 
         for address, template in templates_url_names.items():
@@ -88,3 +88,7 @@ class StaticURLTests(TestCase):
         """Кастомная ошибка использует шаблон core/404.html."""
         response = self.guest_client.get('/unexisting_page/')
         self.assertTemplateUsed(response, 'core/404.html')
+
+    def test_follow_index(self):
+        response = self.guest_client.get('/follow/')
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)

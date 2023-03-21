@@ -210,3 +210,12 @@ class PostPagesTests(TestCase):
         response_new = self.authorized_client.get(reverse('posts:index'))
         new_posts = response_new.content
         self.assertNotEqual(old_posts, new_posts)
+
+    def test_follow(self):
+        """Запись пользователя появляется в ленте, кто на него подписан."""
+        post228 = Post.objects.create(
+            text='jsdnfjksdnfjksdnfkjsdfn',
+            author=self.user,
+        )
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        self.assertNotIn(post228, response.context['page_obj'])

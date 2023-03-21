@@ -3,6 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from .models import Post
 from .models import Group
+from .models import Follow
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -23,3 +24,4 @@ class PostAdmin(admin.ModelAdmin):
 # класс PostAdmin
 admin.site.register(Post, PostAdmin)
 admin.site.register(Group)
+admin.site.register(Follow)
