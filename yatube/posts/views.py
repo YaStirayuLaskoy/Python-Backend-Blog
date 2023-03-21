@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 # from django.views.decorators.cache import cache_page
-from .utils import get_paginator
 
 from .models import Post, Group, User
 from .forms import PostForm, CommentForm
+from .utils import get_paginator
 
 
 # @cache_page(20)
@@ -96,7 +96,6 @@ def post_edit(request, post_id):
 
 @login_required
 def add_comment(request, post_id):
-    # Получите пост и сохраните его в переменную post.
     post = get_object_or_404(Post, pk=post_id)
     form = CommentForm(request.POST or None)
     if form.is_valid():
@@ -105,3 +104,25 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
+
+
+@login_required
+def follow_index(request):
+    # информация о текущем пользователе доступна в переменной request.user
+    user = request.user
+    post_list = Post.objects.filter(author__following__user=user)
+    
+    context = {}
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request, username):
+    # Подписаться на автора
+    ...
+
+
+@login_required
+def profile_unfollow(request, username):
+    # Дизлайк, отписка
+    ...
