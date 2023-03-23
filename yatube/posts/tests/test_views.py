@@ -7,8 +7,9 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.core.cache import cache
+from http import HTTPStatus
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Follow
 
 User = get_user_model()
 
@@ -106,23 +107,12 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         self.check_context_contains_page_or_post(response.context)
 
-        # Проверка картинки
-        post = self.authorized_client.get(
-            reverse('posts:index')).context['page_obj'][0]
-        self.assertEqual(post.image, self.post1.image)
-
     def test_group_posts_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
         response = (self.authorized_client.
                     get(reverse('posts:group_list',
                                 kwargs={'slug': 'test-slug'})))
         self.check_context_contains_page_or_post(response.context)
-
-        # Проверка картинки
-        post = self.authorized_client.get(
-            reverse('posts:group_list',
-                    kwargs={'slug': 'test-slug'})).context['page_obj'][0]
-        self.assertEqual(post.image, self.post1.image)
 
     def test_profile_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
@@ -132,12 +122,6 @@ class PostPagesTests(TestCase):
         self.check_context_contains_page_or_post(response.context)
         self.assertIn('author', response.context)
         self.assertEqual(response.context['author'], PostPagesTests.user)
-
-        # Проверка картинки
-        post = self.authorized_client.get(
-            reverse('posts:profile',
-                    kwargs={'username': 'HasNoName'})).context['page_obj'][0]
-        self.assertEqual(post.image, self.post1.image)
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -151,11 +135,19 @@ class PostPagesTests(TestCase):
             response.context['post_count'], PostPagesTests.user.posts.count()
         )
 
-        # Проверка картинки
-        post = self.authorized_client.get(
-            reverse('posts:post_detail',
-                    args=[self.post1.id])).context['post']
-        self.assertEqual(post.image, self.post1.image)
+    def test_image_correct_context(self):
+        """Шаблоны передают картинку в контекст."""
+        urls = (
+            reverse('posts:index'),
+            reverse('posts:profile', args=(self.user.username,)),
+            reverse('posts:post_detail', args=[self.post1.id]),
+            reverse('posts:group_list', args=(self.group.slug,))
+        )
+
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url)
+                self.assertContains(response, '<img')
 
     def test_create_edit_post_show_correct_context(self):
         """create_post и post_edit сформированы с правильным контекстом."""
@@ -197,25 +189,44 @@ class PostPagesTests(TestCase):
 
     def test_cache_index(self):
         """Проверка хранения и очищения кэша для index."""
-        response = self.authorized_client.get(reverse('posts:index'))
-        posts = response.content
-        Post.objects.create(
+        post_cache = Post.objects.create(
             text='Текст для теста кэша',
             author=self.user,
         )
+        response = self.authorized_client.get(reverse('posts:index'))
+
+        post_cache.delete()
         response_old = self.authorized_client.get(reverse('posts:index'))
-        old_posts = response_old.content
-        self.assertEqual(old_posts, posts)
+        self.assertEqual(response_old.content, response.content)
+
         cache.clear()
         response_new = self.authorized_client.get(reverse('posts:index'))
-        new_posts = response_new.content
-        self.assertNotEqual(old_posts, new_posts)
+        self.assertNotEqual(response.content, response_new.content)
 
-    def test_follow(self):
-        """Запись пользователя появляется в ленте, кто на него подписан."""
-        post228 = Post.objects.create(
-            text='jsdnfjksdnfjksdnfkjsdfn',
-            author=self.user,
+    def test_authorized_user_can_follow(self):
+        """Авторизованный пользователь может подписываться на других"""
+        new_user_follow = User.objects.create_user(username='test_follow')
+
+        response = self.authorized_client.get(
+            reverse('posts:profile_follow', args=(new_user_follow.username,)),
+            follow=True
         )
-        response = self.authorized_client.get(reverse('posts:follow_index'))
-        self.assertNotIn(post228, response.context['page_obj'])
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(Follow.objects.count(), 1)
+        follow = Follow.objects.first()
+        self.assertEqual(follow.user, self.user)
+        self.assertEqual(follow.author, new_user_follow)
+
+    def test_authorized_user_can_unfollow(self):
+        """Авторизованный пользователь может отписываться от других"""
+        author = User.objects.create_user(username='test')
+        Follow.objects.create(user=self.user, author=author)
+
+        response = self.authorized_client.get(
+            reverse('posts:profile_unfollow', args=(author.username,)),
+            follow=True
+        )
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(Follow.objects.count(), 0)

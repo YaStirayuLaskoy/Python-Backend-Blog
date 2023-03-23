@@ -1,7 +1,7 @@
 import shutil
 import tempfile
 
-from posts.models import Post, Group, Comment, Follow
+from posts.models import Post, Group, Comment
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -40,6 +40,11 @@ class PostCreateFormTests(TestCase):
         )
         cls.uploaded = SimpleUploadedFile(
             name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
+        cls.uploaded2 = SimpleUploadedFile(
+            name='small2.gif',
             content=small_gif,
             content_type='image/gif'
         )
@@ -88,6 +93,7 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(post.text, form_data["text"])
         self.assertEqual(post.author, self.user)
         self.assertEqual(post.group, PostCreateFormTests.group)
+        self.assertEqual(post.image, "posts/small.gif")
 
     def test_edit_posts(self):
         """Валидная форма изменяет запись в Post."""
@@ -95,10 +101,12 @@ class PostCreateFormTests(TestCase):
             author=self.user,
             text='Тестовый текст',
             group=self.group,
+            image=self.uploaded,
         )
         form_data = {
             'text': 'Текст изменённый',
             'group': self.group2.id,
+            'image': self.uploaded2,
         }
         # Отправляем POST-запрос
         response = self.authorized_client.post(
@@ -112,9 +120,10 @@ class PostCreateFormTests(TestCase):
             reverse('posts:post_detail',
                     kwargs={'post_id': self.post1.id}
                     ))
-        post = Post.objects.get(id=self.post1.id)
+        post = Post.objects.first()
         self.assertEqual(post.text, form_data["text"])
         self.assertEqual(post.group, self.group2)
+        self.assertEqual(post.image, "posts/small2.gif")
 
     def test_unauth_user_cant_publish_pos(self):
         """Валидная форма не создает запись в Post."""
@@ -147,23 +156,3 @@ class PostCreateFormTests(TestCase):
             follow=True,
         )
         self.assertEqual(Comment.objects.count(), 1)
-
-    def test_subscribe(self):
-        """Авторизованный пользователь может подписываться на других"""
-        self.post228 = Post.objects.create(
-            author=self.user,
-            text='Тестовый текст',
-            group=self.group,
-        )
-        self.authorized_client.get('/profile/TestUser2/follow/')
-        self.assertEqual(Follow.objects.count(), 1)
-
-    def test_subscribe2(self):
-        """Авторизованный пользователь может отписываться от других"""
-        self.post228 = Post.objects.create(
-            author=self.user,
-            text='Тестовый текст',
-            group=self.group,
-        )
-        self.authorized_client.get('profile/TestUser2/unfollow/')
-        self.assertEqual(Follow.objects.count(), 0)
